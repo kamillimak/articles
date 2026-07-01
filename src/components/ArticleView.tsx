@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MessageSquare, Heart, Share2, ArrowLeft, ArrowRight, Eye, Sparkles } from "lucide-react";
+import { MessageSquare, Heart, ArrowLeft, ArrowRight, Quote } from "lucide-react";
 import InteractiveDiagram from "./InteractiveDiagram";
 import CardSimulator from "./CardSimulator";
 import ProofChecklist from "./ProofChecklist";
@@ -32,18 +32,13 @@ export default function ArticleView({
   onBackToHome,
   onSelectArticle
 }: ArticleViewProps) {
-  // Local state for highlights marked in this session
-  const [sessionHighlights, setSessionHighlights] = useState<Record<string, boolean>>({
-    "p1-s1": true,
-    "p2-s2": true,
-    "p3-s1": true,
-  });
+  const [sessionHighlights, setSessionHighlights] = useState<Record<string, boolean>>({});
 
   const toggleHighlight = (key: string) => {
     if (!highlightsEnabled) return;
     setSessionHighlights(prev => ({
       ...prev,
-      [key]: !prev[key]
+      [key]: !(prev[key] ?? true)
     }));
   };
 
@@ -54,13 +49,12 @@ export default function ArticleView({
     xl: "text-2xl leading-relaxed md:text-[25px] md:leading-10",
   }[fontSize];
 
-  // Find index and next article
   const currentIndex = ARTICLES.findIndex(a => a.id === article.id);
   const nextArticle = currentIndex < ARTICLES.length - 1 ? ARTICLES[currentIndex + 1] : ARTICLES[0];
+  const pullQuote = article.pullQuote || article.paragraphs.find(p => p.boldSnippet)?.boldSnippet;
 
   return (
-    <article className="max-w-[720px] mx-auto px-1 py-4">
-      {/* Navigation & Back button */}
+    <article className="max-w-[740px] mx-auto px-1 py-4">
       <button
         onClick={onBackToHome}
         className="group flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-[#1A1A1A]/60 hover:text-[#F97316] mb-8 transition-colors cursor-pointer"
@@ -68,27 +62,25 @@ export default function ArticleView({
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Powrót do Dziennika
       </button>
 
-      {/* Article Header */}
       <header className="mb-10">
-        <div className="flex items-center gap-3 text-xs font-mono text-[#F97316] mb-6">
-          <span className="px-2 py-0.5 bg-[#F97316] text-white text-[9px] font-bold tracking-tighter uppercase rounded-sm">
+        <div className="flex items-center gap-3 text-xs font-mono mb-6" style={{ color: article.accentColor }}>
+          <span className="px-2 py-0.5 text-white text-[9px] font-bold tracking-tighter uppercase rounded-sm" style={{ backgroundColor: article.accentColor }}>
             Opublikowane
           </span>
           <span className="text-[10px] tracking-widest font-semibold uppercase opacity-40 text-[#1A1A1A]">
-            {article.wpis} · {article.readTime}
+            {article.wpis} · {article.category} · {article.readTime}
           </span>
         </div>
 
-        <h1 
+        <h1
           className="font-display font-bold text-4xl md:text-6xl text-[#1A1A1A] tracking-tighter leading-[0.95] mb-8"
           dangerouslySetInnerHTML={{ __html: article.titleRich }}
         />
-        
-        <h3 className="font-sans text-base md:text-lg text-[#1A1A1A]/80 font-normal leading-relaxed mb-8">
+
+        <h3 className="font-sans text-base md:text-xl text-[#1A1A1A]/78 font-normal leading-relaxed mb-8">
           {article.subtitle}
         </h3>
 
-        {/* Author Bio Section */}
         <div className="flex items-center justify-between py-6 border-y border-[#1A1A1A]/10 mb-8">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#1A1A1A] rounded-full flex items-center justify-center text-white font-serif italic text-lg shadow-md">
@@ -100,17 +92,17 @@ export default function ArticleView({
                 <span className="text-[9px] uppercase tracking-wider bg-orange-100 text-[#F97316] px-1.5 py-0.5 rounded-sm font-bold">Autor</span>
               </div>
               <p className="text-[10px] text-[#1A1A1A]/50 font-mono uppercase tracking-wider mt-0.5">
-                Future IT · Żórawina / Wrocław
+                Future IT · AI Coding Workflow
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
-            <button 
+            <button
               onClick={onLike}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
-                isLiked 
-                  ? "bg-rose-50 text-rose-600 border border-rose-200" 
+                isLiked
+                  ? "bg-rose-50 text-rose-600 border border-rose-200"
                   : "bg-white hover:bg-zinc-50 text-zinc-600 border border-[#1A1A1A]/10 shadow-sm"
               }`}
             >
@@ -122,7 +114,6 @@ export default function ArticleView({
         </div>
       </header>
 
-      {/* Hero Banner Image */}
       <div className="my-10 -mx-4 md:-mx-12 relative group">
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl pointer-events-none" />
         <img
@@ -138,42 +129,62 @@ export default function ArticleView({
         </div>
       </div>
 
-      {/* Article Content Area */}
-      <div className={`font-serif text-zinc-800 ${fontSizeClass} space-y-7 mb-12`}>
+      <div className="mb-10 border-y border-[#1A1A1A]/10 py-4 grid grid-cols-3 gap-4 text-center">
+        <div>
+          <span className="block text-[9px] font-mono uppercase tracking-widest text-[#1A1A1A]/40">Długość</span>
+          <strong className="text-sm font-display text-[#1A1A1A]">{article.wordCount} słów</strong>
+        </div>
+        <div className="border-x border-[#1A1A1A]/10">
+          <span className="block text-[9px] font-mono uppercase tracking-widest text-[#1A1A1A]/40">Czytanie</span>
+          <strong className="text-sm font-display text-[#1A1A1A]">{article.readTimeMin} min</strong>
+        </div>
+        <div>
+          <span className="block text-[9px] font-mono uppercase tracking-widest text-[#1A1A1A]/40">Temat</span>
+          <strong className="text-sm font-display" style={{ color: article.accentColor }}>{article.category}</strong>
+        </div>
+      </div>
+
+      <div className={`font-serif text-zinc-800 ${fontSizeClass} space-y-10 mb-12`}>
         {article.paragraphs.map((p, idx) => {
-          // Scope paragraph IDs per article dynamically
           const globalParagraphId = `${article.id}_${p.id}`;
           const globalHighlightId = `${article.id}_${p.highlightId || `h-${idx}`}`;
-          
-          const isHighlighted = sessionHighlights[globalHighlightId] && highlightsEnabled;
+          const isHighlighted = (sessionHighlights[globalHighlightId] ?? true) && highlightsEnabled;
           const boldPart = p.boldSnippet || "";
           const normalPart = boldPart ? p.text.replace(boldPart, "") : p.text;
+          const sectionTitle = article.sectionNames[p.id];
 
           return (
-            <p key={p.id} className="relative group">
-              {boldPart ? (
-                <>
-                  <span 
-                    onClick={() => toggleHighlight(globalHighlightId)}
-                    className={`transition-all rounded px-0.5 cursor-pointer ${
-                      isHighlighted
-                        ? "bg-amber-100 border-b-2 border-amber-300 text-zinc-900" 
-                        : "hover:bg-zinc-50"
-                    }`}
-                  >
-                    {boldPart}
-                  </span>
-                  {normalPart}
-                </>
-              ) : (
-                p.text
+            <section key={p.id} className="relative group scroll-mt-24">
+              {sectionTitle && (
+                <h2 className="font-display text-xl md:text-2xl font-bold text-[#1A1A1A] tracking-tight leading-tight mb-3">
+                  {sectionTitle}
+                </h2>
               )}
 
-              {/* Comments margin trigger */}
+              <p className="relative">
+                {boldPart ? (
+                  <>
+                    <span
+                      onClick={() => toggleHighlight(globalHighlightId)}
+                      className={`transition-all rounded px-0.5 cursor-pointer ${
+                        isHighlighted
+                          ? "bg-amber-100 border-b-2 border-amber-300 text-zinc-900"
+                          : "hover:bg-zinc-50"
+                      }`}
+                    >
+                      {boldPart}
+                    </span>
+                    {normalPart}
+                  </>
+                ) : (
+                  p.text
+                )}
+              </p>
+
               <button
                 onClick={() => onOpenComments(globalParagraphId)}
-                className="absolute -left-12 top-1 opacity-0 group-hover:opacity-100 transition-all p-1.5 rounded-full bg-white border border-[#1A1A1A]/10 shadow-sm text-zinc-500 hover:text-[#F97316] hover:scale-105 hidden md:block cursor-pointer"
-                title="Skomentuj akapit"
+                className="absolute -left-12 top-9 opacity-0 group-hover:opacity-100 transition-all p-1.5 rounded-full bg-white border border-[#1A1A1A]/10 shadow-sm text-zinc-500 hover:text-[#F97316] hover:scale-105 hidden md:block cursor-pointer"
+                title="Skomentuj sekcję"
               >
                 <MessageSquare className="w-3.5 h-3.5" />
                 {commentsCount[globalParagraphId] > 0 && (
@@ -182,12 +193,20 @@ export default function ArticleView({
                   </span>
                 )}
               </button>
-            </p>
+
+              {idx === 1 && pullQuote && (
+                <blockquote className="my-10 border-l-4 bg-white px-5 py-5 shadow-sm" style={{ borderColor: article.accentColor }}>
+                  <Quote className="w-5 h-5 mb-3" style={{ color: article.accentColor }} />
+                  <p className="font-display text-xl md:text-2xl leading-snug font-bold text-[#1A1A1A]">
+                    {pullQuote}
+                  </p>
+                </blockquote>
+              )}
+            </section>
           );
         })}
       </div>
 
-      {/* Custom Dynamic Interactive Widgets Based on Article Topic */}
       {article.hasCustomWidget === "diagram" && (
         <div className="space-y-6">
           <InteractiveDiagram />
@@ -211,17 +230,15 @@ export default function ArticleView({
         <JsonValidatorWidget />
       )}
 
-      {/* Horizontal divider */}
       <hr className="border-[#1A1A1A]/10 my-10" />
 
-      {/* "Next Post" Recommendation Teaser */}
       <footer className="bg-white border border-[#1A1A1A]/10 rounded-xl p-6 hover:border-[#F97316]/40 transition-all shadow-sm">
-        <span className="text-[9px] font-mono uppercase tracking-widest text-[#F97316] font-bold block mb-1">
+        <span className="text-[9px] font-mono uppercase tracking-widest font-bold block mb-1" style={{ color: article.accentColor }}>
           Polecany kolejny artykuł
         </span>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h4 
+            <h4
               onClick={() => onSelectArticle(nextArticle.id)}
               className="font-display font-bold text-lg text-[#1A1A1A] hover:text-[#F97316] transition-colors cursor-pointer leading-tight"
             >
