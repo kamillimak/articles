@@ -11,11 +11,8 @@ export default function App() {
   const [fontSize, setFontSize] = useState<"sm" | "base" | "lg" | "xl">("base");
   const [highlightsEnabled, setHighlightsEnabled] = useState<boolean>(true);
   const [activeParagraphComment, setActiveParagraphComment] = useState<string | null>(null);
-  
-  // Reading scroll progress percentage
   const [scrollProgress, setScrollProgress] = useState<number>(0);
 
-  // Dynamic Likes states tracked per article ID
   const [likesState, setLikesState] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
     ARTICLES.forEach((art) => {
@@ -32,46 +29,44 @@ export default function App() {
     return initial;
   });
 
-  // Flat comments store, scoped by paragraph IDs (e.g., 'portfolio-samo-sie-buduje_p1')
   const [comments, setComments] = useState<ParagraphComment[]>([
     {
       id: "c1",
-      paragraphId: "portfolio-samo-sie-buduje_p1",
-      author: "Janusz Biznesu",
-      text: "Sam kiedyś spędziłem pół dnia na poprawianiu tagów w 15 różnych plikach HTML. Przejście na schemat danych to jedyne rozsądne rozwiązanie przy rosnącym portfolio.",
-      timestamp: "Wczoraj, 18:40"
-    },
-    {
-      id: "c2",
-      paragraphId: "portfolio-samo-sie-buduje_p2",
-      author: "Marta Kowalska",
-      text: "Święta prawda z tym unikaniem aktualizacji. Jak pomyślę o ponownym uruchamianiu webpacka tylko po to, żeby dodać logo klienta, wolę napisać maila bezpośrednio. Ten system rozwiązuje ten opór psychiczny.",
+      paragraphId: "codex-agent-w-repozytorium_p1",
+      author: "Marta Frontend",
+      text: "To rozróżnienie między czatem a agentem w repozytorium jest bardzo trafne. Dopiero kiedy Codex najpierw czyta projekt, zmiany zaczynają pasować do istniejącego stylu kodu.",
       timestamp: "Dziś, 09:12"
     },
     {
+      id: "c2",
+      paragraphId: "codex-agent-w-repozytorium_p4",
+      author: "Piotr DevOps",
+      text: "Najważniejszy akapit: weryfikacja jako część zadania. Bez builda albo przynajmniej jasnego raportu ryzyk agent zostawia za dużo niewiadomych.",
+      timestamp: "Dziś, 10:40"
+    },
+    {
       id: "c3",
-      paragraphId: "portfolio-samo-sie-buduje_p3",
-      author: "Artur UX",
-      text: "Te okładki wygenerowane automatycznie z kolorem akcentu są genialne w swojej prostocie. Na kafelkach wygląda to bardzo profesjonalnie, wręcz estetyczniej niż chaotyczny screenshot niedokończonej strony.",
-      timestamp: "Dziś, 14:22"
+      paragraphId: "trae-lokalny-asystent_p4",
+      author: "Olek UI",
+      text: "Model krótkich serii w Trae działa u mnie najlepiej: mała zmiana, szybki diff, korekta. Dzięki temu lokalny asystent nie rozlewa się po projekcie.",
+      timestamp: "Wczoraj, 18:05"
     },
     {
       id: "c4",
-      paragraphId: "zanim-zrobie-zrzut-ekranu_p1",
-      author: "Olek_Dev",
-      text: "To prawda, robienie screenshotów w dobrej rozdzielczości i dbanie o to, żeby pasowały do kafelków, to zawsze była katorga. Automatyczne placeholdery z hex to świetny trik wizualny.",
-      timestamp: "Dziś, 11:05"
+      paragraphId: "claude-architekt-refaktoryzacji_p3",
+      author: "Ania Architekt",
+      text: "Prośba o wariant minimalny, rozsądny i ambitny to świetny schemat rozmowy z Claude. Bardzo pomaga odróżnić elegancję od realnej wartości dla projektu.",
+      timestamp: "Dziś, 12:22"
     },
     {
       id: "c5",
-      paragraphId: "ai-heroes-2026-certyfikaty_p2",
+      paragraphId: "orkiestracja-czterech-narzedzi_p2",
       author: "Grzegorz_AI",
-      text: "Certyfikaty z LinkedIna straciły jakąkolwiek wartość rynkową. Dziś klienci premium z zagranicy pytają o publiczne logi, test coverage i weryfikowalne demo. Doskonały artykuł!",
-      timestamp: "Wczoraj, 22:15"
+      text: "Ten podział ról porządkuje cały temat. AI Studio jako mapa, Claude jako architekt, Codex jako wykonawca, Trae jako lokalna precyzja. Proste i praktyczne.",
+      timestamp: "Dziś, 14:07"
     }
   ]);
 
-  // Track page scroll to update top progress bar
   useEffect(() => {
     const handleScroll = () => {
       const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
@@ -87,7 +82,6 @@ export default function App() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [selectedArticleId]);
 
-  // Scroll to top when shifting between articles or pages
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     setScrollProgress(0);
@@ -113,7 +107,6 @@ export default function App() {
     }));
   };
 
-  // Helper map to pass comment counts
   const commentsCountMap: Record<string, number> = {};
   comments.forEach(c => {
     commentsCountMap[c.paragraphId] = (commentsCountMap[c.paragraphId] || 0) + 1;
@@ -123,18 +116,15 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#F9F8F6] text-[#1A1A1A] font-sans selection:bg-orange-100 selection:text-orange-900 transition-all">
-      {/* Premium Top Progress Bar */}
-      <div 
+      <div
         className="fixed top-0 left-0 h-[3px] bg-gradient-to-r from-orange-400 via-[#F97316] to-amber-500 z-50 transition-all duration-75"
         style={{ width: `${scrollProgress}%` }}
       />
 
-      {/* Navigation Header */}
       <nav className="sticky top-0 bg-[#F9F8F6]/95 backdrop-blur-md border-b border-[#1A1A1A]/10 z-40 px-4 md:px-8 py-4 transition-all">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-6">
-            {/* Minimalist Logo */}
-            <div 
+            <div
               onClick={() => setSelectedArticleId(null)}
               className="flex items-center gap-3 group cursor-pointer select-none"
             >
@@ -143,22 +133,21 @@ export default function App() {
               </span>
               <div className="flex flex-col">
                 <span className="font-display font-bold text-xs tracking-[0.2em] uppercase text-[#1A1A1A] group-hover:text-[#F97316] transition-colors">
-                  Dziennik Budowy
+                  Warsztat AI Coding
                 </span>
                 <span className="text-[10px] font-mono text-[#1A1A1A]/50 leading-none mt-0.5">
-                  Kamil Mikołajczyk
+                  Codex · Trae · Claude · AI Studio
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Right Controls */}
           <div className="flex items-center gap-4">
             <span className="text-[10px] font-mono text-[#1A1A1A]/60 hidden lg:inline-flex items-center gap-1.5 bg-white border border-[#1A1A1A]/10 px-2.5 py-1 rounded-sm shadow-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              SYSTEM AKTYWNY: v2.0
+              SERIA: AI WORKFLOW
             </span>
-            
+
             <a
               href="https://kamillimak.github.io/Projects"
               target="_blank"
@@ -171,12 +160,9 @@ export default function App() {
         </div>
       </nav>
 
-      {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-4 md:px-8 py-10">
         {activeArticle ? (
-          /* SINGLE ARTICLE VIEW LAYOUT */
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-            {/* Main Article column */}
             <div className="lg:col-span-8 bg-[#F9F8F6] border-b lg:border-r border-b-[#1A1A1A]/10 lg:border-r-[#1A1A1A]/10 pb-8 lg:pb-0 lg:pr-10">
               <ArticleView
                 article={activeArticle}
@@ -192,7 +178,6 @@ export default function App() {
               />
             </div>
 
-            {/* Sticky Controls Sidebar column */}
             <div className="lg:col-span-4">
               <SidebarPanel
                 article={activeArticle}
@@ -206,12 +191,10 @@ export default function App() {
             </div>
           </div>
         ) : (
-          /* EDITORIAL HOME PAGE LAYOUT */
           <HomePage onSelectArticle={(id) => setSelectedArticleId(id)} />
         )}
       </main>
 
-      {/* Margin Comments Sidebar drawer */}
       <CommentsDrawer
         paragraphId={activeParagraphComment}
         onClose={() => setActiveParagraphComment(null)}
@@ -219,7 +202,6 @@ export default function App() {
         onAddComment={handleAddComment}
       />
 
-      {/* Bottom Footer block */}
       <footer className="bg-[#1A1A1A] text-zinc-400 font-sans border-t border-[#1A1A1A]/10 py-12 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-3">
@@ -231,7 +213,7 @@ export default function App() {
             </span>
           </div>
           <div className="flex items-center gap-4 text-xs font-mono">
-            <span className="hover:text-zinc-200 transition-colors cursor-pointer" onClick={() => setSelectedArticleId("portfolio-samo-sie-buduje")}>Dziennik v2.0</span>
+            <span className="hover:text-zinc-200 transition-colors cursor-pointer" onClick={() => setSelectedArticleId("codex-agent-w-repozytorium")}>Codex</span>
             <span className="text-zinc-800">|</span>
             <span className="hover:text-zinc-200 transition-colors cursor-pointer" onClick={() => setSelectedArticleId(null)}>Główna</span>
             <span className="text-zinc-800">|</span>
