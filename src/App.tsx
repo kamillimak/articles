@@ -1,16 +1,13 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { useState, useEffect } from "react";
+import HomePage from "./components/HomePage";
 import ArticleView from "./components/ArticleView";
 import SidebarPanel from "./components/SidebarPanel";
 import CommentsDrawer from "./components/CommentsDrawer";
 import { ParagraphComment } from "./types";
-import { MessageSquare, Sparkles, Heart, Clock, Compass, Menu, HelpCircle, Eye, Check } from "lucide-react";
+import { ARTICLES } from "./data/articles";
 
 export default function App() {
+  const [selectedArticleId, setSelectedArticleId] = useState<string | null>(null);
   const [fontSize, setFontSize] = useState<"sm" | "base" | "lg" | "xl">("base");
   const [highlightsEnabled, setHighlightsEnabled] = useState<boolean>(true);
   const [activeParagraphComment, setActiveParagraphComment] = useState<string | null>(null);
@@ -18,32 +15,59 @@ export default function App() {
   // Reading scroll progress percentage
   const [scrollProgress, setScrollProgress] = useState<number>(0);
 
-  // Likes/Claps counter
-  const [likesCount, setLikesCount] = useState<number>(42);
-  const [isLiked, setIsLiked] = useState<boolean>(false);
+  // Dynamic Likes states tracked per article ID
+  const [likesState, setLikesState] = useState<Record<string, number>>(() => {
+    const initial: Record<string, number> = {};
+    ARTICLES.forEach((art) => {
+      initial[art.id] = art.initialLikes;
+    });
+    return initial;
+  });
 
-  // Pre-loaded margins comments representing real user interactions
+  const [isLikedState, setIsLikedState] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    ARTICLES.forEach((art) => {
+      initial[art.id] = false;
+    });
+    return initial;
+  });
+
+  // Flat comments store, scoped by paragraph IDs (e.g., 'portfolio-samo-sie-buduje_p1')
   const [comments, setComments] = useState<ParagraphComment[]>([
     {
       id: "c1",
-      paragraphId: "p1",
+      paragraphId: "portfolio-samo-sie-buduje_p1",
       author: "Janusz Biznesu",
       text: "Sam kiedyś spędziłem pół dnia na poprawianiu tagów w 15 różnych plikach HTML. Przejście na schemat danych to jedyne rozsądne rozwiązanie przy rosnącym portfolio.",
       timestamp: "Wczoraj, 18:40"
     },
     {
       id: "c2",
-      paragraphId: "p2",
+      paragraphId: "portfolio-samo-sie-buduje_p2",
       author: "Marta Kowalska",
       text: "Święta prawda z tym unikaniem aktualizacji. Jak pomyślę o ponownym uruchamianiu webpacka tylko po to, żeby dodać logo klienta, wolę napisać maila bezpośrednio. Ten system rozwiązuje ten opór psychiczny.",
       timestamp: "Dziś, 09:12"
     },
     {
       id: "c3",
-      paragraphId: "p3",
+      paragraphId: "portfolio-samo-sie-buduje_p3",
       author: "Artur UX",
       text: "Te okładki wygenerowane automatycznie z kolorem akcentu są genialne w swojej prostocie. Na kafelkach wygląda to bardzo profesjonalnie, wręcz estetyczniej niż chaotyczny screenshot niedokończonej strony.",
       timestamp: "Dziś, 14:22"
+    },
+    {
+      id: "c4",
+      paragraphId: "zanim-zrobie-zrzut-ekranu_p1",
+      author: "Olek_Dev",
+      text: "To prawda, robienie screenshotów w dobrej rozdzielczości i dbanie o to, żeby pasowały do kafelków, to zawsze była katorga. Automatyczne placeholdery z hex to świetny trik wizualny.",
+      timestamp: "Dziś, 11:05"
+    },
+    {
+      id: "c5",
+      paragraphId: "ai-heroes-2026-certyfikaty_p2",
+      author: "Grzegorz_AI",
+      text: "Certyfikaty z LinkedIna straciły jakąkolwiek wartość rynkową. Dziś klienci premium z zagranicy pytają o publiczne logi, test coverage i weryfikowalne demo. Doskonały artykuł!",
+      timestamp: "Wczoraj, 22:15"
     }
   ]);
 
@@ -54,12 +78,20 @@ export default function App() {
       if (totalScroll > 0) {
         const currentProgress = (window.scrollY / totalScroll) * 100;
         setScrollProgress(currentProgress);
+      } else {
+        setScrollProgress(0);
       }
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [selectedArticleId]);
+
+  // Scroll to top when shifting between articles or pages
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setScrollProgress(0);
+  }, [selectedArticleId]);
 
   const handleAddComment = (paragraphId: string, author: string, text: string) => {
     const newComment: ParagraphComment = {
@@ -72,21 +104,22 @@ export default function App() {
     setComments(prev => [newComment, ...prev]);
   };
 
-  const handleLike = () => {
-    if (isLiked) {
-      setLikesCount(prev => prev - 1);
-      setIsLiked(false);
-    } else {
-      setLikesCount(prev => prev + 1);
-      setIsLiked(true);
-    }
+  const handleLike = (articleId: string) => {
+    const currentlyLiked = isLikedState[articleId];
+    setIsLikedState(prev => ({ ...prev, [articleId]: !currentlyLiked }));
+    setLikesState(prev => ({
+      ...prev,
+      [articleId]: currentlyLiked ? prev[articleId] - 1 : prev[articleId] + 1
+    }));
   };
 
-  // Helper map to pass counts to paragraphs
+  // Helper map to pass comment counts
   const commentsCountMap: Record<string, number> = {};
   comments.forEach(c => {
     commentsCountMap[c.paragraphId] = (commentsCountMap[c.paragraphId] || 0) + 1;
   });
+
+  const activeArticle = selectedArticleId ? ARTICLES.find(a => a.id === selectedArticleId) : null;
 
   return (
     <div className="min-h-screen bg-[#F9F8F6] text-[#1A1A1A] font-sans selection:bg-orange-100 selection:text-orange-900 transition-all">
@@ -101,7 +134,10 @@ export default function App() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-6">
             {/* Minimalist Logo */}
-            <a href="/" className="flex items-center gap-3 group">
+            <div 
+              onClick={() => setSelectedArticleId(null)}
+              className="flex items-center gap-3 group cursor-pointer select-none"
+            >
               <span className="w-10 h-10 bg-[#1A1A1A] rounded-full flex items-center justify-center text-white font-serif italic text-lg shadow-md group-hover:bg-[#F97316] transition-all">
                 KM
               </span>
@@ -113,7 +149,7 @@ export default function App() {
                   Kamil Mikołajczyk
                 </span>
               </div>
-            </a>
+            </div>
           </div>
 
           {/* Right Controls */}
@@ -137,34 +173,42 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-4 md:px-8 py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          
-          {/* Main Article column */}
-          <div className="lg:col-span-8 bg-[#F9F8F6] border-b lg:border-r border-b-[#1A1A1A]/10 lg:border-r-[#1A1A1A]/10 pb-8 lg:pb-0 lg:pr-10">
-            <ArticleView
-              fontSize={fontSize}
-              highlightsEnabled={highlightsEnabled}
-              onOpenComments={(pId) => setActiveParagraphComment(pId)}
-              commentsCount={commentsCountMap}
-              likesCount={likesCount}
-              onLike={handleLike}
-              isLiked={isLiked}
-            />
-          </div>
+        {activeArticle ? (
+          /* SINGLE ARTICLE VIEW LAYOUT */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            {/* Main Article column */}
+            <div className="lg:col-span-8 bg-[#F9F8F6] border-b lg:border-r border-b-[#1A1A1A]/10 lg:border-r-[#1A1A1A]/10 pb-8 lg:pb-0 lg:pr-10">
+              <ArticleView
+                article={activeArticle}
+                fontSize={fontSize}
+                highlightsEnabled={highlightsEnabled}
+                onOpenComments={(pId) => setActiveParagraphComment(pId)}
+                commentsCount={commentsCountMap}
+                likesCount={likesState[activeArticle.id]}
+                onLike={() => handleLike(activeArticle.id)}
+                isLiked={isLikedState[activeArticle.id]}
+                onBackToHome={() => setSelectedArticleId(null)}
+                onSelectArticle={(id) => setSelectedArticleId(id)}
+              />
+            </div>
 
-          {/* Sticky Controls Sidebar column */}
-          <div className="lg:col-span-4">
-            <SidebarPanel
-              fontSize={fontSize}
-              setFontSize={setFontSize}
-              highlightsEnabled={highlightsEnabled}
-              setHighlightsEnabled={setHighlightsEnabled}
-              commentsCount={commentsCountMap}
-              likesCount={likesCount}
-            />
+            {/* Sticky Controls Sidebar column */}
+            <div className="lg:col-span-4">
+              <SidebarPanel
+                article={activeArticle}
+                fontSize={fontSize}
+                setFontSize={setFontSize}
+                highlightsEnabled={highlightsEnabled}
+                setHighlightsEnabled={setHighlightsEnabled}
+                commentsCount={commentsCountMap}
+                likesCount={likesState[activeArticle.id]}
+              />
+            </div>
           </div>
-
-        </div>
+        ) : (
+          /* EDITORIAL HOME PAGE LAYOUT */
+          <HomePage onSelectArticle={(id) => setSelectedArticleId(id)} />
+        )}
       </main>
 
       {/* Margin Comments Sidebar drawer */}
@@ -176,10 +220,10 @@ export default function App() {
       />
 
       {/* Bottom Footer block */}
-      <footer className="bg-zinc-950 text-zinc-400 font-sans border-t border-[#1A1A1A]/10 py-12 px-6">
+      <footer className="bg-[#1A1A1A] text-zinc-400 font-sans border-t border-[#1A1A1A]/10 py-12 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-3">
-            <span className="w-8 h-8 rounded-full bg-zinc-800 text-zinc-200 flex items-center justify-center font-serif italic text-xs">
+            <span className="w-8 h-8 rounded-full bg-zinc-850 text-zinc-200 flex items-center justify-center font-serif italic text-xs">
               KM
             </span>
             <span className="text-xs font-mono text-zinc-500 uppercase tracking-wider">
@@ -187,9 +231,9 @@ export default function App() {
             </span>
           </div>
           <div className="flex items-center gap-4 text-xs font-mono">
-            <a href="#card-simulator" className="hover:text-zinc-200 transition-colors">Symulator</a>
+            <span className="hover:text-zinc-200 transition-colors cursor-pointer" onClick={() => setSelectedArticleId("portfolio-samo-sie-buduje")}>Dziennik v2.0</span>
             <span className="text-zinc-800">|</span>
-            <a href="#interactive-diagram" className="hover:text-zinc-200 transition-colors">Diagram Architektury</a>
+            <span className="hover:text-zinc-200 transition-colors cursor-pointer" onClick={() => setSelectedArticleId(null)}>Główna</span>
             <span className="text-zinc-800">|</span>
             <a href="https://kamillimak.github.io/Projects" className="hover:text-zinc-200 transition-colors">Portfolio</a>
           </div>

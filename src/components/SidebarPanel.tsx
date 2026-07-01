@@ -1,6 +1,8 @@
 import { Type, Sparkles, BookOpen, Clock, Layers, Flame, Info, Check, Eye } from "lucide-react";
+import { Article } from "../data/articles";
 
 interface SidebarPanelProps {
+  article: Article;
   fontSize: "sm" | "base" | "lg" | "xl";
   setFontSize: (size: "sm" | "base" | "lg" | "xl") => void;
   highlightsEnabled: boolean;
@@ -10,6 +12,7 @@ interface SidebarPanelProps {
 }
 
 export default function SidebarPanel({
+  article,
   fontSize,
   setFontSize,
   highlightsEnabled,
@@ -32,13 +35,13 @@ export default function SidebarPanel({
           <div className="bg-[#F9F8F6] rounded-lg p-3 border border-[#1A1A1A]/5">
             <span className="text-[9px] font-mono text-[#1A1A1A]/50 block uppercase tracking-wider">Czas czytania</span>
             <span className="text-sm font-display font-bold text-[#1A1A1A] mt-1 flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-[#F97316]" /> 7 minut
+              <Clock className="w-3.5 h-3.5 text-[#F97316]" /> {article.readTimeMin} min
             </span>
           </div>
           <div className="bg-[#F9F8F6] rounded-lg p-3 border border-[#1A1A1A]/5">
             <span className="text-[9px] font-mono text-[#1A1A1A]/50 block uppercase tracking-wider">Słowa</span>
             <span className="text-sm font-display font-bold text-[#1A1A1A] mt-1">
-              465 wyrazów
+              {article.wordCount} wyrazów
             </span>
           </div>
           <div className="bg-[#F9F8F6] rounded-lg p-3 border border-[#1A1A1A]/5">

@@ -1,6 +1,7 @@
 import { useState, FormEvent } from "react";
 import { X, Send, User, MessageSquare, Calendar } from "lucide-react";
 import { ParagraphComment } from "../types";
+import { ARTICLES } from "../data/articles";
 
 interface CommentsDrawerProps {
   paragraphId: string | null;
@@ -37,15 +38,18 @@ export default function CommentsDrawer({
     // Keep author saved for subsequent comments
   };
 
-  // Human-friendly paragraph names
-  const sectionNames: Record<string, string> = {
-    p1: "Akapit 1: Rytuał aktualizacji",
-    p2: "Akapit 2: Zadanie portfolia freelancera",
-    h1: "Sekcja: Jeden plik meta.json",
-    p3: "Sekcja: Generator okładek i placeholderów",
-  };
-
-  const displayName = sectionNames[paragraphId] || "Tego akapitu";
+  // Human-friendly paragraph names derived dynamically
+  let displayName = "Tego akapitu";
+  if (paragraphId) {
+    const parts = paragraphId.split("_");
+    if (parts.length === 2) {
+      const [artId, pId] = parts;
+      const articleObj = ARTICLES.find(a => a.id === artId);
+      if (articleObj && articleObj.sectionNames[pId]) {
+        displayName = `${articleObj.wpis} · ${articleObj.sectionNames[pId]}`;
+      }
+    }
+  }
 
   return (
     <div className="fixed inset-y-0 right-0 w-full sm:w-[380px] bg-[#F9F8F6] border-l border-[#1A1A1A]/10 shadow-2xl z-50 flex flex-col justify-between animate-slide-in">
