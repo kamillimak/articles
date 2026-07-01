@@ -1,0 +1,6 @@
+{
+  "name": "Dziennik Budowy",
+  "description": "Minimalistyczny czytnik artykułów w stylu Medium opisujący automatyzację portfolio opartego o pliki JSON.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
