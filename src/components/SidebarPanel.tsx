@@ -1,4 +1,4 @@
-import { Type, Sparkles, BookOpen, Clock, Layers, Flame, Info, Check, Eye } from "lucide-react";
+import { Sparkles, BookOpen, Clock, Flame } from "lucide-react";
 import { Article } from "../data/articles";
 
 interface SidebarPanelProps {
@@ -20,14 +20,15 @@ export default function SidebarPanel({
   commentsCount,
   likesCount
 }: SidebarPanelProps) {
-  const totalComments = Object.values(commentsCount).reduce((a, b) => a + b, 0);
+  const totalComments = Object.entries(commentsCount)
+    .filter(([paragraphId]) => paragraphId.startsWith(`${article.id}_`))
+    .reduce((sum, [, count]) => sum + count, 0);
 
   return (
     <div className="sticky top-6 space-y-6">
-      {/* Article Stats Card */}
       <div className="bg-white border border-[#1A1A1A]/10 rounded-xl p-5 shadow-sm">
         <h4 className="text-[10px] font-mono uppercase tracking-widest text-[#1A1A1A]/40 font-bold mb-4 flex items-center gap-1.5">
-          <BookOpen className="w-3.5 h-3.5 text-[#F97316]" />
+          <BookOpen className="w-3.5 h-3.5" style={{ color: article.accentColor }} />
           Statystyki Artykułu
         </h4>
 
@@ -35,7 +36,7 @@ export default function SidebarPanel({
           <div className="bg-[#F9F8F6] rounded-lg p-3 border border-[#1A1A1A]/5">
             <span className="text-[9px] font-mono text-[#1A1A1A]/50 block uppercase tracking-wider">Czas czytania</span>
             <span className="text-sm font-display font-bold text-[#1A1A1A] mt-1 flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-[#F97316]" /> {article.readTimeMin} min
+              <Clock className="w-3.5 h-3.5" style={{ color: article.accentColor }} /> {article.readTimeMin} min
             </span>
           </div>
           <div className="bg-[#F9F8F6] rounded-lg p-3 border border-[#1A1A1A]/5">
@@ -59,14 +60,12 @@ export default function SidebarPanel({
         </div>
       </div>
 
-      {/* Reader Settings Card */}
       <div className="bg-white border border-[#1A1A1A]/10 rounded-xl p-5 shadow-sm space-y-5">
         <h4 className="text-[10px] font-mono uppercase tracking-widest text-[#1A1A1A]/40 font-bold flex items-center gap-1.5">
           <Settings className="w-3.5 h-3.5 text-[#1A1A1A]/60" />
           Ustawienia Czytnika
         </h4>
 
-        {/* Font size selectors */}
         <div>
           <span className="text-[9px] font-mono text-[#1A1A1A]/50 block mb-2 uppercase tracking-wider">Rozmiar Czcionki</span>
           <div className="flex bg-[#F9F8F6] p-1 rounded-lg border border-[#1A1A1A]/10">
@@ -86,11 +85,10 @@ export default function SidebarPanel({
           </div>
         </div>
 
-        {/* Custom Highlighter Switch */}
         <div className="flex items-center justify-between pt-2">
           <div>
             <span className="text-[9px] font-mono text-[#1A1A1A]/50 block uppercase tracking-wider">Interaktywne Zakreślenie</span>
-            <span className="text-xs text-[#1A1A1A]/60 font-sans">Podświetlaj słowa kluczowe</span>
+            <span className="text-xs text-[#1A1A1A]/60 font-sans">Podświetlaj kluczowe zdania</span>
           </div>
           <button
             onClick={() => setHighlightsEnabled(!highlightsEnabled)}
@@ -107,22 +105,19 @@ export default function SidebarPanel({
         </div>
       </div>
 
-      {/* Mini Tips */}
       <div className="p-5 bg-orange-50/40 border border-[#F97316]/10 rounded-xl space-y-2">
         <span className="text-[10px] font-mono uppercase text-[#F97316] font-bold flex items-center gap-1 tracking-wider">
           <Sparkles className="w-3 h-3 text-[#F97316]" />
-          Dziennik Kamil Mikołajczyk
+          Warsztat AI Coding
         </span>
         <p className="text-xs text-[#1A1A1A]/70 font-sans leading-relaxed">
-          Kamil opisuje automatyzację portfolio, które eliminuje konieczność żmudnego kopiowania HTML-a. 
-          Możesz kliknąć <strong>"Dziennik Budowy"</strong> i przetestować jego koncepcję na żywo w edytorze JSON poniżej artykułu!
+          Ten cykl pokazuje praktyczny podział ról między <strong>Codexem</strong>, <strong>Trae</strong>, <strong>Claude</strong> i <strong>AI Studio</strong>. Czytaj sekcjami, komentuj konkretne akapity i sprawdzaj interaktywne moduły pod artykułami.
         </p>
       </div>
     </div>
   );
 }
 
-// Settings helper icon
 function Settings({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
